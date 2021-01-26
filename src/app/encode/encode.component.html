@@ -1,0 +1,64 @@
+<div class="divMain">
+
+  <div class="divColumn1">
+    <mat-accordion>
+
+      <mat-expansion-panel [expanded]="step === 0" (opened)="setStep(0)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Base image</mat-panel-title>
+          <mat-panel-description>{{imageName}}</mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="divExpansionPanel">
+          <input #file type="file" accept="image/*" (change)="load(file.files)" />
+          <p>Type: {{imageType}}</p>
+          <p>Width: {{imageWidth}} px</p>
+          <p>Height: {{imageHeight}} px</p>
+        </div>
+        <mat-action-row>
+          <button mat-button color="primary" (click)="nextStep()">Next</button>
+        </mat-action-row>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel [expanded]="step === 1" (opened)="setStep(1)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>Settings</mat-panel-title>
+          <mat-panel-description>{{bitsSubpx}} bits/subpixel - {{bitsAlpha}} bits/alpha</mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="divExpansionPanel">
+          <p id="labelBitsSubpx">Bits per subpixel</p>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsSubpx"
+            [(ngModel)]="bitsSubpx" (change)="calculateCapacity()"></mat-slider>
+          <p id="labelBitsAlpha">Bits per pixel transparency</p>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsAlpha"
+            [(ngModel)]="bitsAlpha" (change)="calculateCapacity()"></mat-slider>
+          <p>Width: {{imageWidth}} px</p>
+          <p>Height: {{imageHeight}} px</p>
+          <p>Capacity: {{capacityHuman}}</p>
+        </div>
+        <mat-action-row>
+          <button mat-button color="warn" (click)="prevStep()">Previous</button>
+          <button mat-button color="primary" (click)="nextStep()">Next</button>
+        </mat-action-row>
+      </mat-expansion-panel>
+
+    </mat-accordion>
+  </div>
+
+  <div class="divColumn2">
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="Source">
+        <div class="imgbox">
+          <img class="center-fit" [src]="sourceImageURL" *ngIf="sourceImageURL">
+        </div>
+        <!-- <canvas #sourceCanvas></canvas> -->
+      </mat-tab>
+      <mat-tab label="Encoded">
+        <div class="imgbox">
+          <img class="imagePreview" [src]="encodedImageURL" *ngIf="encodedImageURL">
+        </div>
+        <!-- <canvas #outCanvas></canvas> -->
+      </mat-tab>
+    </mat-tab-group>
+  </div>
+
+</div>

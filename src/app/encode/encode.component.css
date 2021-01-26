@@ -1,0 +1,35 @@
+.divMain {
+  display: flex;
+  flex-direction: row;
+  flex: auto;
+  overflow: auto;
+}
+
+.divColumn1 {
+  flex: 1;
+  padding: 5px 2.5px 5px 5px;
+}
+
+.divColumn2 {
+  flex: 2.5;
+  padding: 5px 5px 5px 2.5px;
+}
+
+.divExpansionPanel {
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  overflow: auto;
+  padding: 15px;
+}
+
+.imgbox {
+  display: grid;
+  height: 100%;
+}
+
+.center-fit {
+  max-width: 100%;
+  max-height: 100vh;
+  margin: auto;
+}
