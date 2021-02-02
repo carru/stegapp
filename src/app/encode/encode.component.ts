@@ -1,18 +1,19 @@
-import { Component, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { EncoderService } from "../encoder.service";
+
+export enum DataSources {
+  File = '1',
+  Text = '2',
+  Random = '3',
+}
 
 @Component({
   selector: 'app-encode',
   templateUrl: './encode.component.html',
   styleUrls: ['./encode.component.css'],
 })
-export class EncodeComponent implements AfterViewInit {
-  // @ViewChild('sourceCanvas') sourceCanvasEl: ElementRef<HTMLCanvasElement>;
-  // sourceContext: CanvasRenderingContext2D;
-  // sourceCanvas: HTMLCanvasElement;
-  // @ViewChild('outCanvas') outCanvasEl: ElementRef<HTMLCanvasElement>;
-  // outContext: CanvasRenderingContext2D;
-  // outCanvas: HTMLCanvasElement;
+export class EncodeComponent {
 
   bitsSubpx: number = 1;
   bitsAlpha: number = 0;
@@ -28,6 +29,10 @@ export class EncodeComponent implements AfterViewInit {
 
   sourceImageData: ImageData;
 
+  dataSource: string = DataSources.File;
+  dataText: string;
+  dataFile: File;
+
   // Accordion navigation
   step: number = 0;
   setStep(index: number) {
@@ -40,31 +45,21 @@ export class EncodeComponent implements AfterViewInit {
     this.step--;
   }
 
-  constructor(private domSanitizer: DomSanitizer) {}
-
-  ngAfterViewInit(): void {
-    // Get canvases and contexts
-    // this.sourceCanvas = this.sourceCanvasEl.nativeElement;
-    // this.outCanvas = this.outCanvasEl.nativeElement;
-    // this.sourceContext = this.sourceCanvas.getContext('2d');
-    // this.outContext = this.outCanvas.getContext('2d');
-  }
+  constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService) {}
 
   calculateCapacity(): void {
-    if(this.imageWidth === undefined)
-      return;
+    if (this.imageWidth === undefined) return;
 
     const bitsPixel: number = this.bitsAlpha + 3 * this.bitsSubpx; // RGBA
-    this.capacity = this.imageWidth * this.imageHeight * bitsPixel / 8;
+    this.capacity = (this.imageWidth * this.imageHeight * bitsPixel) / 8;
     this.capacityHuman = this.toHumanReadable(this.capacity);
   }
 
   toHumanReadable(input: number): string {
     const units: string[] = ['B', 'kB', 'MB'];
     let i: number = 0;
-    while(input > 1000) {
-      if(i >= units.length - 1)
-        break;
+    while (input > 1000) {
+      if (i >= units.length - 1) break;
 
       i++;
       input = input / 1000;
@@ -72,13 +67,44 @@ export class EncodeComponent implements AfterViewInit {
     return `${input.toFixed(1)} ${units[i]}`;
   }
 
+  async encode() {
+    if (this.imageWidth === undefined) return;
+    // TODO show toast with error if no source image loaded
+
+    let encodedImage: ImageData;
+
+    // Get encoded image data
+    switch (this.dataSource) {
+      case DataSources.File:
+        encodedImage = this.encoderService.encodeFile(this.sourceImageData, this.dataFile);
+        break;
+      case DataSources.Text:
+        encodedImage = this.encoderService.encodeString(this.sourceImageData, this.dataText);
+        break;
+      case DataSources.Random:
+        encodedImage = this.encoderService.encodeRandom(this.sourceImageData);
+        break;
+    }
+
+    if (!encodedImage) return;
+    // TODO show error
+
+    // Convert to blob
+    const offscreenCanvas = new OffscreenCanvas(this.imageWidth, this.imageHeight);
+    const offscreenCanvasContext = offscreenCanvas.getContext('2d');
+    offscreenCanvasContext.putImageData(encodedImage, 0, 0);
+    let encodedBlob: Blob = await offscreenCanvas.convertToBlob();
+
+    // Generate URL for UI display
+    URL.revokeObjectURL(this.encodedImageURL);
+    this.encodedImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(encodedBlob)) as string;
+  }
+
   async load(files: FileList) {
-    if(files.length === 0) return;
+    if (files.length === 0) return;
 
     const mimeType: string = files[0].type;
-    if(mimeType.match(/image\/*/) == null) {
-      return;
-    }
+    if (mimeType.match(/image\/*/) == null) return;
 
     const imageFile: File = files[0];
 
@@ -86,16 +112,15 @@ export class EncodeComponent implements AfterViewInit {
     URL.revokeObjectURL(this.sourceImageURL);
     this.sourceImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(imageFile)) as string;
 
-    // Get image data
+    // Get image metadata
     const imageBitmap: ImageBitmap = await createImageBitmap(imageFile);
     this.imageType = imageFile.type;
     this.imageName = imageFile.name;
     this.imageWidth = imageBitmap.width;
     this.imageHeight = imageBitmap.height;
     this.calculateCapacity();
-    // this.sourceCanvas.width = this.imageWidth;
-    // this.sourceCanvas.height = this.imageHeight;
-    // this.sourceContext.drawImage(imageBitmap, 0, 0);
+
+    // Get image data
     const offscreenCanvas = new OffscreenCanvas(this.imageWidth, this.imageHeight);
     const offscreenCanvasContext = offscreenCanvas.getContext('2d');
     offscreenCanvasContext.drawImage(imageBitmap, 0, 0);

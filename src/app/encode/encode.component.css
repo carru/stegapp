@@ -33,3 +33,9 @@
   max-height: 100vh;
   margin: auto;
 }
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  margin: 15px 0;
+}
