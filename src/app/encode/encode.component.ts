@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { EncoderService } from "../encoder.service";
+import { EncoderOptions, EncoderService } from "../encoder.service";
 
 export enum DataSources {
   File = '1',
@@ -72,17 +72,23 @@ export class EncodeComponent {
     // TODO show toast with error if no source image loaded
 
     let encodedImage: ImageData;
+    const options: EncoderOptions = {
+      bitsRed: this.bitsSubpx,
+      bitsGreen: this.bitsSubpx,
+      bitsBlue: this.bitsSubpx,
+      bitsAlpha: this.bitsAlpha
+    }
 
     // Get encoded image data
     switch (this.dataSource) {
       case DataSources.File:
-        encodedImage = this.encoderService.encodeFile(this.sourceImageData, this.dataFile);
+        encodedImage = this.encoderService.encodeFile(this.sourceImageData, options, this.dataFile);
         break;
       case DataSources.Text:
-        encodedImage = this.encoderService.encodeString(this.sourceImageData, this.dataText);
+        encodedImage = this.encoderService.encodeString(this.sourceImageData, options, this.dataText);
         break;
       case DataSources.Random:
-        encodedImage = this.encoderService.encodeRandom(this.sourceImageData);
+        encodedImage = this.encoderService.encodeRandom(this.sourceImageData, options);
         break;
     }
 
