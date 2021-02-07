@@ -22,15 +22,22 @@
       <mat-expansion-panel [expanded]="model.step === 1" (opened)="setStep(1)">
         <mat-expansion-panel-header>
           <mat-panel-title>Settings</mat-panel-title>
-          <mat-panel-description>{{model.bitsSubpx}} bits/subpixel - {{model.bitsAlpha}} bits/alpha</mat-panel-description>
+          <mat-panel-description>Bits per RGBA channel: {{model.options.bitsRed}}{{model.options.bitsGreen}}{{model.options.bitsBlue}}{{model.options.bitsAlpha}}</mat-panel-description>
         </mat-expansion-panel-header>
         <div class="divExpansionPanel">
-          <label id="labelBitsSubpx">Bits per subpixel</label>
-          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsSubpx"
-            [(ngModel)]="model.bitsSubpx" (change)="calculateCapacityPreview()"></mat-slider>
-          <label id="labelBitsAlpha">Bits per pixel transparency</label>
+          <mat-checkbox [(ngModel)]="model.rgbLocked" (change)="rgbaSliderChange()">Lock RGB</mat-checkbox>
+          <label id="labelBitsRed">Bits per Red subpixel</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsRed"
+            [(ngModel)]="model.options.bitsRed" (change)="rgbaSliderChange()"></mat-slider>
+          <label id="labelBitsGreen">Bits per Green subpixel</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsGreen"
+            [(ngModel)]="model.options.bitsGreen" (change)="rgbaSliderChange()" [disabled]="model.rgbLocked"></mat-slider>
+          <label id="labelBitsBlue">Bits per Blue subpixel</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsBlue"
+            [(ngModel)]="model.options.bitsBlue" (change)="rgbaSliderChange()" [disabled]="model.rgbLocked"></mat-slider>
+          <label id="labelBitsAlpha">Bits per Alpha subpixel (transparency)</label>
           <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsAlpha"
-            [(ngModel)]="model.bitsAlpha" (change)="calculateCapacityPreview()"></mat-slider>
+            [(ngModel)]="model.options.bitsAlpha" (change)="rgbaSliderChange()"></mat-slider>
           <p>Width: {{model.imageWidth}} px</p>
           <p>Height: {{model.imageHeight}} px</p>
           <p>Capacity: {{model.capacityHuman}}</p>

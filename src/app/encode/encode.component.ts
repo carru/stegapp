@@ -27,20 +27,19 @@ export class EncodeComponent {
     this.model = new EncodeModel();
   }
 
+  rgbaSliderChange(): void {
+    if (this.model.rgbLocked) {
+      this.model.options.bitsGreen = this.model.options.bitsRed;
+      this.model.options.bitsBlue = this.model.options.bitsRed;
+    }
+    this.calculateCapacityPreview();
+  }
+
   calculateCapacityPreview(): void {
     if (this.model.imageWidth === undefined) return;
 
-    this.model.capacity = this.encoderService.getMaxRawCapacity(this.model.sourceImageData, this.getOptions()) / 8;
+    this.model.capacity = this.encoderService.getMaxRawCapacity(this.model.sourceImageData, this.model.options) / 8;
     this.model.capacityHuman = Utils.toHumanReadable(this.model.capacity);
-  }
-
-  getOptions(): EncoderOptions {
-    return {
-      bitsRed: this.model.bitsSubpx,
-      bitsGreen: this.model.bitsSubpx,
-      bitsBlue: this.model.bitsSubpx,
-      bitsAlpha: this.model.bitsAlpha
-    }
   }
 
   async encode() {
@@ -52,13 +51,13 @@ export class EncodeComponent {
     // Get encoded image data
     switch (this.model.dataSource) {
       case DataSources.File:
-        encodedImage = this.encoderService.encodeFile(this.model.sourceImageData, this.getOptions(), this.model.dataFile);
+        encodedImage = this.encoderService.encodeFile(this.model.sourceImageData, this.model.options, this.model.dataFile);
         break;
       case DataSources.Text:
-        encodedImage = this.encoderService.encodeString(this.model.sourceImageData, this.getOptions(), this.model.dataText);
+        encodedImage = this.encoderService.encodeString(this.model.sourceImageData, this.model.options, this.model.dataText);
         break;
       case DataSources.Random:
-        encodedImage = this.encoderService.encodeRandom(this.model.sourceImageData, this.getOptions());
+        encodedImage = this.encoderService.encodeRandom(this.model.sourceImageData, this.model.options);
         break;
     }
 

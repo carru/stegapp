@@ -1,3 +1,5 @@
+import { EncoderOptions } from "../encoder.service";
+
 export enum DataSources {
   File = '1',
   Text = '2',
@@ -5,8 +7,14 @@ export enum DataSources {
 }
 
 export class EncodeModel {
-  bitsSubpx: number = 1;
-  bitsAlpha: number = 0;
+  options: EncoderOptions = {
+    bitsRed: 1,
+    bitsGreen: 1,
+    bitsBlue: 1,
+    bitsAlpha: 0
+  };
+  rgbLocked: boolean = true;
+
   imageName: string;
   imageType: string;
   imageWidth: number;
