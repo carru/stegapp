@@ -54,8 +54,20 @@ export class EncoderService {
     // Convert data to array of individual bits
     const dataBits: BitsArray = BitsArray.uint8ArrayToBitsArray(data);
 
+    // Prepare header and check total payload length
+    let headerBits: BitsArray;
+    try {
+      headerBits = this.getHeaderBitsArray(source, this.getHeader(options, dataBits));
+    } catch (error) {
+      console.warn(error);
+      throw new Error("Data doesn't fit");
+    }
+    if ((headerBits.length + dataBits.length) > this.getMaxRawCapacity(source, options)) {
+      // This doesn't account for the header using different options; i.e. it can take up more space than this considers!
+      throw new Error("Data doesn't fit");
+    }
+
     // Encode header
-    const headerBits: BitsArray = this.getHeaderBitsArray(source, this.getHeader(options, dataBits));
     let subPixel: number;
     let encodingComplete: boolean = false;
     for (subPixel = 0; subPixel < encodedPixels.length; subPixel += 4) {

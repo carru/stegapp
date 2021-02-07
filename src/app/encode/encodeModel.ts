@@ -14,7 +14,7 @@ export class EncodeModel {
     bitsAlpha: 0
   };
   rgbLocked: boolean = true;
-  livePreview: boolean = false;
+  livePreview: boolean = true;
   sideBySideView: boolean = true;
 
   imageName: string;
@@ -29,7 +29,7 @@ export class EncodeModel {
 
   sourceImageData: ImageData;
 
-  dataSource: string = DataSources.Text;
+  dataSource: string = DataSources.Random;
   dataText: string;
   dataFile: File;
 

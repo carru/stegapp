@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EncoderOptions, EncoderService } from "../encoder.service";
 import { Utils } from '../utils';
@@ -11,6 +12,7 @@ import { DataSources, EncodeModel } from './encodeModel';
 })
 export class EncodeComponent {
   model: EncodeModel;
+  DEFAULT_TOAST_DURATION: number = 2000;
 
   // Accordion navigation
   setStep(index: number) {
@@ -23,7 +25,7 @@ export class EncodeComponent {
     this.model.step--;
   }
 
-  constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService) {
+  constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService, private _snackBar: MatSnackBar) {
     this.model = new EncodeModel();
   }
 
@@ -46,27 +48,35 @@ export class EncodeComponent {
     this.model.capacityHuman = Utils.toHumanReadable(this.model.capacity);
   }
 
+  showToast(message: string, durationMilliseconds: number = this.DEFAULT_TOAST_DURATION) {
+    this._snackBar.open(message, undefined, { duration: durationMilliseconds });
+  }
+
   async encode() {
-    if (this.model.imageWidth === undefined) return;
-    // TODO show toast with error if no source image loaded
+    if (this.model.imageWidth === undefined) {
+      this.showToast('No source image selected');
+      return;
+    }
 
     let encodedImage: ImageData;
 
     // Get encoded image data
-    switch (this.model.dataSource) {
-      case DataSources.File:
-        encodedImage = this.encoderService.encodeFile(this.model.sourceImageData, this.model.options, this.model.dataFile);
-        break;
-      case DataSources.Text:
-        encodedImage = this.encoderService.encodeString(this.model.sourceImageData, this.model.options, this.model.dataText);
-        break;
-      case DataSources.Random:
-        encodedImage = this.encoderService.encodeRandom(this.model.sourceImageData, this.model.options);
-        break;
+    try {
+      switch (this.model.dataSource) {
+        case DataSources.File:
+          encodedImage = this.encoderService.encodeFile(this.model.sourceImageData, this.model.options, this.model.dataFile);
+          break;
+        case DataSources.Text:
+          encodedImage = this.encoderService.encodeString(this.model.sourceImageData, this.model.options, this.model.dataText);
+          break;
+        case DataSources.Random:
+          encodedImage = this.encoderService.encodeRandom(this.model.sourceImageData, this.model.options);
+          break;
+      }
+    } catch (error) {
+      this.showToast(error);
+      return;
     }
-
-    if (!encodedImage) return;
-    // TODO show error
 
     // Convert to blob
     const offscreenCanvas = new OffscreenCanvas(this.model.imageWidth, this.model.imageHeight);
