@@ -47,11 +47,10 @@ export class EncodeComponent {
 
   constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService) {}
 
-  calculateCapacity(): void {
+  calculateCapacityPreview(): void {
     if (this.imageWidth === undefined) return;
 
-    const bitsPixel: number = this.bitsAlpha + 3 * this.bitsSubpx; // RGBA
-    this.capacity = (this.imageWidth * this.imageHeight * bitsPixel) / 8;
+    this.capacity = this.encoderService.getMaxRawCapacity(this.sourceImageData, this.getOptions()) / 8;
     this.capacityHuman = this.toHumanReadable(this.capacity);
   }
 
@@ -67,28 +66,31 @@ export class EncodeComponent {
     return `${input.toFixed(1)} ${units[i]}`;
   }
 
-  async encode() {
-    if (this.imageWidth === undefined) return;
-    // TODO show toast with error if no source image loaded
-
-    let encodedImage: ImageData;
-    const options: EncoderOptions = {
+  getOptions(): EncoderOptions {
+    return {
       bitsRed: this.bitsSubpx,
       bitsGreen: this.bitsSubpx,
       bitsBlue: this.bitsSubpx,
       bitsAlpha: this.bitsAlpha
     }
+  }
+
+  async encode() {
+    if (this.imageWidth === undefined) return;
+    // TODO show toast with error if no source image loaded
+
+    let encodedImage: ImageData;
 
     // Get encoded image data
     switch (this.dataSource) {
       case DataSources.File:
-        encodedImage = this.encoderService.encodeFile(this.sourceImageData, options, this.dataFile);
+        encodedImage = this.encoderService.encodeFile(this.sourceImageData, this.getOptions(), this.dataFile);
         break;
       case DataSources.Text:
-        encodedImage = this.encoderService.encodeString(this.sourceImageData, options, this.dataText);
+        encodedImage = this.encoderService.encodeString(this.sourceImageData, this.getOptions(), this.dataText);
         break;
       case DataSources.Random:
-        encodedImage = this.encoderService.encodeRandom(this.sourceImageData, options);
+        encodedImage = this.encoderService.encodeRandom(this.sourceImageData, this.getOptions());
         break;
     }
 
@@ -124,12 +126,13 @@ export class EncodeComponent {
     this.imageName = imageFile.name;
     this.imageWidth = imageBitmap.width;
     this.imageHeight = imageBitmap.height;
-    this.calculateCapacity();
 
     // Get image data
     const offscreenCanvas = new OffscreenCanvas(this.imageWidth, this.imageHeight);
     const offscreenCanvasContext = offscreenCanvas.getContext('2d');
     offscreenCanvasContext.drawImage(imageBitmap, 0, 0);
     this.sourceImageData = offscreenCanvasContext.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+
+    this.calculateCapacityPreview();
   }
 }

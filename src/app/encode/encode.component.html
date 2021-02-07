@@ -27,10 +27,10 @@
         <div class="divExpansionPanel">
           <label id="labelBitsSubpx">Bits per subpixel</label>
           <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsSubpx"
-            [(ngModel)]="bitsSubpx" (change)="calculateCapacity()"></mat-slider>
+            [(ngModel)]="bitsSubpx" (change)="calculateCapacityPreview()"></mat-slider>
           <label id="labelBitsAlpha">Bits per pixel transparency</label>
           <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsAlpha"
-            [(ngModel)]="bitsAlpha" (change)="calculateCapacity()"></mat-slider>
+            [(ngModel)]="bitsAlpha" (change)="calculateCapacityPreview()"></mat-slider>
           <p>Width: {{imageWidth}} px</p>
           <p>Height: {{imageHeight}} px</p>
           <p>Capacity: {{capacityHuman}}</p>
