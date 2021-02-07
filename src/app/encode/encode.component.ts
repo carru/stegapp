@@ -1,12 +1,7 @@
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EncoderOptions, EncoderService } from "../encoder.service";
-
-export enum DataSources {
-  File = '1',
-  Text = '2',
-  Random = '3',
-}
+import { DataSources, EncodeModel } from './encodeModel';
 
 @Component({
   selector: 'app-encode',
@@ -14,44 +9,28 @@ export enum DataSources {
   styleUrls: ['./encode.component.css'],
 })
 export class EncodeComponent {
-
-  bitsSubpx: number = 1;
-  bitsAlpha: number = 0;
-  imageName: string;
-  imageType: string;
-  imageWidth: number;
-  imageHeight: number;
-  capacity: number;
-  capacityHuman: string;
-
-  sourceImageURL: string;
-  encodedImageURL: string;
-
-  sourceImageData: ImageData;
-
-  dataSource: string = DataSources.Text;
-  dataText: string;
-  dataFile: File;
+  model: EncodeModel;
 
   // Accordion navigation
-  step: number = 0;
   setStep(index: number) {
-    this.step = index;
+    this.model.step = index;
   }
   nextStep() {
-    this.step++;
+    this.model.step++;
   }
   prevStep() {
-    this.step--;
+    this.model.step--;
   }
 
-  constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService) {}
+  constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService) {
+    this.model = new EncodeModel();
+  }
 
   calculateCapacityPreview(): void {
-    if (this.imageWidth === undefined) return;
+    if (this.model.imageWidth === undefined) return;
 
-    this.capacity = this.encoderService.getMaxRawCapacity(this.sourceImageData, this.getOptions()) / 8;
-    this.capacityHuman = this.toHumanReadable(this.capacity);
+    this.model.capacity = this.encoderService.getMaxRawCapacity(this.model.sourceImageData, this.getOptions()) / 8;
+    this.model.capacityHuman = this.toHumanReadable(this.model.capacity);
   }
 
   toHumanReadable(input: number): string {
@@ -68,29 +47,29 @@ export class EncodeComponent {
 
   getOptions(): EncoderOptions {
     return {
-      bitsRed: this.bitsSubpx,
-      bitsGreen: this.bitsSubpx,
-      bitsBlue: this.bitsSubpx,
-      bitsAlpha: this.bitsAlpha
+      bitsRed: this.model.bitsSubpx,
+      bitsGreen: this.model.bitsSubpx,
+      bitsBlue: this.model.bitsSubpx,
+      bitsAlpha: this.model.bitsAlpha
     }
   }
 
   async encode() {
-    if (this.imageWidth === undefined) return;
+    if (this.model.imageWidth === undefined) return;
     // TODO show toast with error if no source image loaded
 
     let encodedImage: ImageData;
 
     // Get encoded image data
-    switch (this.dataSource) {
+    switch (this.model.dataSource) {
       case DataSources.File:
-        encodedImage = this.encoderService.encodeFile(this.sourceImageData, this.getOptions(), this.dataFile);
+        encodedImage = this.encoderService.encodeFile(this.model.sourceImageData, this.getOptions(), this.model.dataFile);
         break;
       case DataSources.Text:
-        encodedImage = this.encoderService.encodeString(this.sourceImageData, this.getOptions(), this.dataText);
+        encodedImage = this.encoderService.encodeString(this.model.sourceImageData, this.getOptions(), this.model.dataText);
         break;
       case DataSources.Random:
-        encodedImage = this.encoderService.encodeRandom(this.sourceImageData, this.getOptions());
+        encodedImage = this.encoderService.encodeRandom(this.model.sourceImageData, this.getOptions());
         break;
     }
 
@@ -98,14 +77,14 @@ export class EncodeComponent {
     // TODO show error
 
     // Convert to blob
-    const offscreenCanvas = new OffscreenCanvas(this.imageWidth, this.imageHeight);
+    const offscreenCanvas = new OffscreenCanvas(this.model.imageWidth, this.model.imageHeight);
     const offscreenCanvasContext = offscreenCanvas.getContext('2d');
     offscreenCanvasContext.putImageData(encodedImage, 0, 0);
     let encodedBlob: Blob = await offscreenCanvas.convertToBlob();
 
     // Generate URL for UI display
-    URL.revokeObjectURL(this.encodedImageURL);
-    this.encodedImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(encodedBlob)) as string;
+    URL.revokeObjectURL(this.model.encodedImageURL);
+    this.model.encodedImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(encodedBlob)) as string;
   }
 
   async load(files: FileList) {
@@ -117,21 +96,21 @@ export class EncodeComponent {
     const imageFile: File = files[0];
 
     // Generate URL for UI display
-    URL.revokeObjectURL(this.sourceImageURL);
-    this.sourceImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(imageFile)) as string;
+    URL.revokeObjectURL(this.model.sourceImageURL);
+    this.model.sourceImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(imageFile)) as string;
 
     // Get image metadata
     const imageBitmap: ImageBitmap = await createImageBitmap(imageFile);
-    this.imageType = imageFile.type;
-    this.imageName = imageFile.name;
-    this.imageWidth = imageBitmap.width;
-    this.imageHeight = imageBitmap.height;
+    this.model.imageType = imageFile.type;
+    this.model.imageName = imageFile.name;
+    this.model.imageWidth = imageBitmap.width;
+    this.model.imageHeight = imageBitmap.height;
 
     // Get image data
-    const offscreenCanvas = new OffscreenCanvas(this.imageWidth, this.imageHeight);
+    const offscreenCanvas = new OffscreenCanvas(this.model.imageWidth, this.model.imageHeight);
     const offscreenCanvasContext = offscreenCanvas.getContext('2d');
     offscreenCanvasContext.drawImage(imageBitmap, 0, 0);
-    this.sourceImageData = offscreenCanvasContext.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+    this.model.sourceImageData = offscreenCanvasContext.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
 
     this.calculateCapacityPreview();
   }
