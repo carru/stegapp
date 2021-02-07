@@ -248,15 +248,6 @@ class BitsArray {
 
   protected static toBits(dataBytes: Uint8Array): number[] {
     let data: number[] = [];
-    // dataBytes.forEach(byte => {
-    //   const bitsString: string[] = byte.toString(2).split('');
-    //   const paddingBits: number = 8 - bitsString.length;
-    //   // Add padding zeroes
-    //   for (let i = 1; i < paddingBits; i++) {
-    //     data.push(0);
-    //   }
-    //   bitsString.forEach(bit => data.push(parseInt(bit)));
-    // });
     dataBytes.forEach(byte => data.push(...Utils.numberToBits(byte, 8)));
     return data;
   }

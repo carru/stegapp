@@ -48,7 +48,7 @@
         </mat-expansion-panel-header>
         <div class="divExpansionPanel">
           <mat-radio-group class="radioGroup" [(ngModel)]="dataSource">
-            <mat-radio-button value="1">File</mat-radio-button>
+            <mat-radio-button value="1" [disabled]="true">File</mat-radio-button>
             <input #file type="file" accept="*/*" [disabled]="dataSource!=='1'" />
             <p>Filename: </p>
             <p>Size: </p>

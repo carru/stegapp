@@ -29,7 +29,7 @@ export class EncodeComponent {
 
   sourceImageData: ImageData;
 
-  dataSource: string = DataSources.File;
+  dataSource: string = DataSources.Text;
   dataText: string;
   dataFile: File;
 
