@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EncoderOptions, EncoderService } from "../encoder.service";
+import { Utils } from '../utils';
 import { DataSources, EncodeModel } from './encodeModel';
 
 @Component({
@@ -30,19 +31,7 @@ export class EncodeComponent {
     if (this.model.imageWidth === undefined) return;
 
     this.model.capacity = this.encoderService.getMaxRawCapacity(this.model.sourceImageData, this.getOptions()) / 8;
-    this.model.capacityHuman = this.toHumanReadable(this.model.capacity);
-  }
-
-  toHumanReadable(input: number): string {
-    const units: string[] = ['B', 'kB', 'MB'];
-    let i: number = 0;
-    while (input > 1000) {
-      if (i >= units.length - 1) break;
-
-      i++;
-      input = input / 1000;
-    }
-    return `${input.toFixed(1)} ${units[i]}`;
+    this.model.capacityHuman = Utils.toHumanReadable(this.model.capacity);
   }
 
   getOptions(): EncoderOptions {

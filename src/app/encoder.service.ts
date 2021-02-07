@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { EncodeComponent } from './encode/encode.component';
+import { BitsArray } from './bitsArray';
+import { Utils } from './utils';
 
 export interface EncoderOptions {
   bitsRed: number;
@@ -211,73 +212,5 @@ export class EncoderService {
   protected fileToUint8Array(input: File): Uint8Array {
     // TODO
     return undefined;
-  }
-}
-
-class BitsArray {
-  data: number[];
-  index: number;
-  length: number;
-
-  constructor() { }
-
-  public getNextBit(): number {
-    this.index++;
-    if (this.index >= this.length) {
-      this.index--;
-      return undefined;
-    }
-    return this.data[this.index];
-  }
-
-  public static arrayToBitsArray(data: number[]): BitsArray {
-    let bitsArray: BitsArray = new BitsArray();
-    bitsArray.data = data;
-    bitsArray.index = 0;
-    bitsArray.length = bitsArray.data.length;
-    return bitsArray;
-  }
-
-  public static uint8ArrayToBitsArray(data: Uint8Array): BitsArray {
-    let bitsArray: BitsArray = new BitsArray();
-    bitsArray.data = BitsArray.toBits(data);
-    bitsArray.index = 0;
-    bitsArray.length = bitsArray.data.length;
-    return bitsArray;
-  }
-
-  protected static toBits(dataBytes: Uint8Array): number[] {
-    let data: number[] = [];
-    dataBytes.forEach(byte => data.push(...Utils.numberToBits(byte, 8)));
-    return data;
-  }
-}
-
-class Utils {
-  public static numberToBits(number: number, numberOfBits: number): number[] {
-    let data: number[] = [];
-    const bits: string[] = number.toString(2).split('');
-    const paddingBits: number = numberOfBits - bits.length;
-
-    if (paddingBits < 0)
-      throw new Error(`Cannot encode ${number} with ${numberOfBits} bits; too large`);
-
-    // Add padding zeroes
-    for (let i = 1; i <= paddingBits; i++) {
-      data.push(0);
-    }
-    bits.forEach(bit => data.push(parseInt(bit)));
-
-    return data;
-  }
-
-  public static bitSize(number: number): number {
-    return number.toString(2).length;
-  }
-
-  public static setBit(input: number, bitPosition: number, bitValue: number): number {
-    const bitValueNormalized: 1 | 0 = bitValue ? 1 : 0;
-    const clearMask: number = ~(1 << bitPosition);
-    return (input & clearMask) | (bitValueNormalized << bitPosition);
   }
 }
