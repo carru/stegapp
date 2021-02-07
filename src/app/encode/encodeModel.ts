@@ -15,6 +15,7 @@ export class EncodeModel {
   };
   rgbLocked: boolean = true;
   livePreview: boolean = false;
+  sideBySideView: boolean = true;
 
   imageName: string;
   imageType: string;

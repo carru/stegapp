@@ -1,6 +1,6 @@
-<div class="divMain">
+<div id="divMain">
 
-  <div class="divColumn1">
+  <div id="divColumn1">
     <mat-accordion>
 
       <mat-expansion-panel [expanded]="model.step === 0" (opened)="setStep(0)">
@@ -24,9 +24,11 @@
           <mat-panel-title>Settings</mat-panel-title>
           <mat-panel-description>Bits per RGBA channel: {{model.options.bitsRed}}{{model.options.bitsGreen}}{{model.options.bitsBlue}}{{model.options.bitsAlpha}}</mat-panel-description>
         </mat-expansion-panel-header>
-        <div class="divExpansionPanel">
+        <div id="divExpansionPanel">
           <mat-checkbox [(ngModel)]="model.livePreview" (change)="rgbaSliderChange()">Live preview</mat-checkbox>
+          <mat-checkbox [(ngModel)]="model.sideBySideView" (change)="rgbaSliderChange()">Side by side view</mat-checkbox>
           <mat-checkbox [(ngModel)]="model.rgbLocked" (change)="rgbaSliderChange()">Lock RGB</mat-checkbox>
+          <br>
           <label id="labelBitsRed">Bits per Red subpixel</label>
           <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsRed"
             [(ngModel)]="model.options.bitsRed" (change)="rgbaSliderChange()"></mat-slider>
@@ -77,8 +79,8 @@
     <button mat-flat-button color="primary" (click)="encode()">Encode</button>
   </div>
 
-  <div class="divColumn2">
-    <mat-tab-group animationDuration="0ms">
+  <div id="divColumn2">
+    <mat-tab-group animationDuration="0ms" *ngIf="!model.sideBySideView">
       <mat-tab label="Source">
         <div class="imgbox">
           <img class="center-fit" [src]="model.sourceImageURL" *ngIf="model.sourceImageURL">
@@ -90,6 +92,17 @@
         </div>
       </mat-tab>
     </mat-tab-group>
+
+    <div id="divSideBySide" *ngIf="model.sideBySideView">
+      <label class="centered-text">Source</label>
+      <div class="imgbox">
+        <img class="center-fit" [src]="model.sourceImageURL" *ngIf="model.sourceImageURL">
+      </div>
+      <label class="centered-text">Encoded</label>
+      <div class="imgbox">
+        <img class="center-fit" [src]="model.encodedImageURL" *ngIf="model.encodedImageURL">
+      </div>
+    </div>
   </div>
 
 </div>
