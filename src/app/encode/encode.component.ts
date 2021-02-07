@@ -32,7 +32,11 @@ export class EncodeComponent {
       this.model.options.bitsGreen = this.model.options.bitsRed;
       this.model.options.bitsBlue = this.model.options.bitsRed;
     }
+
     this.calculateCapacityPreview();
+
+    if (this.model.livePreview)
+      this.encode();
   }
 
   calculateCapacityPreview(): void {

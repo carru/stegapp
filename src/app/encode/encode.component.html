@@ -25,6 +25,7 @@
           <mat-panel-description>Bits per RGBA channel: {{model.options.bitsRed}}{{model.options.bitsGreen}}{{model.options.bitsBlue}}{{model.options.bitsAlpha}}</mat-panel-description>
         </mat-expansion-panel-header>
         <div class="divExpansionPanel">
+          <mat-checkbox [(ngModel)]="model.livePreview" (change)="rgbaSliderChange()">Live preview</mat-checkbox>
           <mat-checkbox [(ngModel)]="model.rgbLocked" (change)="rgbaSliderChange()">Lock RGB</mat-checkbox>
           <label id="labelBitsRed">Bits per Red subpixel</label>
           <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsRed"

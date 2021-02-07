@@ -14,6 +14,7 @@ export class EncodeModel {
     bitsAlpha: 0
   };
   rgbLocked: boolean = true;
+  livePreview: boolean = false;
 
   imageName: string;
   imageType: string;
