@@ -27,6 +27,8 @@ enum SubpxCh {
 })
 export class EncoderService {
   BITS_PER_CHANNEL_SIZE: number = 4;
+  DATA_DOESNT_FIT_ERROR: string = "Data doesn't fit";
+  GENERIC_DECODE_ERROR: string = "Error extracting information";
   HEADER_OPTIONS: EncoderOptions = {
     bitsRed: 1,
     bitsGreen: 1,
@@ -67,12 +69,12 @@ export class EncoderService {
       headerBits = this.getHeaderBitsArray(source, this.getHeader(options, dataBits));
     } catch (error) {
       console.warn(error);
-      throw new Error("Data doesn't fit");
+      throw new Error(this.DATA_DOESNT_FIT_ERROR);
     }
     if ((headerBits.length + dataBits.length) > this.getMaxRawCapacity(source, options)) {
       /* This doesn't account for the header using different options; i.e. it can take up more space than this considers!
        * It will still throw an error after trying to encode and running out of subpixels */
-      throw new Error("Data doesn't fit");
+      throw new Error(this.DATA_DOESNT_FIT_ERROR);
     }
 
     // Encode header
@@ -80,19 +82,45 @@ export class EncoderService {
     let encodingComplete: boolean = false;
     for (subpixel = 0; subpixel < subpixels.length; subpixel++) {
       if (encodingComplete) break;
-      encodingComplete = this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
+      encodingComplete = this.writeSubpixel(subpixels, subpixel, this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
     }
 
     // Encode data; resume on next subpixel after header
     encodingComplete = false;
     for (; subpixel < subpixels.length; subpixel++) {
       if (encodingComplete) break;
-      encodingComplete = this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
+      encodingComplete = this.writeSubpixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
     }
 
-    if (!encodingComplete) throw new Error("Data doesn't fit");
+    if (!encodingComplete) throw new Error(this.DATA_DOESNT_FIT_ERROR);
 
     return new ImageData(subpixels, source.width, source.height);
+  }
+
+  public decode(source: ImageData): Uint8Array {
+    const subpixels: Uint8ClampedArray = Uint8ClampedArray.from(source.data);
+
+    // Read header
+    let subpixel: number;
+    let readComplete: boolean = false;
+    const headerBits: BitsArray = new BitsArray(this.getHeaderSize(source, this.HEADER_OPTIONS));
+    for (subpixel = 0; subpixel < subpixels.length; subpixel++) {
+      if (readComplete) break;
+      readComplete = this.readValue(subpixels[subpixel], this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
+    }
+    const header: Header = this.getHeaderFromBitsArray(headerBits);
+
+    // Read data; resume on next subpixel after header
+    readComplete = false;
+    const dataBits: BitsArray = new BitsArray(header.dataLength);
+    for (; subpixel < subpixels.length; subpixel++) {
+      if (readComplete) break;
+      readComplete = this.readValue(subpixels[subpixel], this.getBitsOfChannel(header.options, subpixel % 4), dataBits);
+    }
+
+    if (!readComplete) throw new Error(this.GENERIC_DECODE_ERROR);
+
+    return dataBits.toUint8Array();
   }
 
   /**
@@ -110,19 +138,30 @@ export class EncoderService {
     // Iterate pixels
     for (let subpixel: number = 0; subpixel < subpixels.length; subpixel++) {
       // RandomBitsArray is infinite so no need to check if encoding is done
-      this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
+      this.writeSubpixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
     }
 
     return new ImageData(subpixels, source.width, source.height);
   }
 
-  protected writeSubPixel(subpixels: Uint8ClampedArray, subpixel: number, numOfBitsToUse: number, dataBits: BitsArray): boolean {
+  protected readValue(subpixel: number, numOfBitsToUse: number, dataBits: BitsArray): boolean {
+    for (let bitPosition: number = 1; bitPosition <= numOfBitsToUse; bitPosition++) {
+      // Check if we've already read all the bits
+      if (dataBits.index >= dataBits.length) return true;
+
+      dataBits.push(Utils.readBit(subpixel, bitPosition));
+    }
+
+    // Still more data left to read
+    return false;
+  }
+
+  protected writeSubpixel(subpixels: Uint8ClampedArray, subpixel: number, numOfBitsToUse: number, dataBits: BitsArray): boolean {
     for (let bitPosition: number = 1; bitPosition <= numOfBitsToUse; bitPosition++) {
       const bitToEncode: number = dataBits.getNextBit();
 
       // Leave if all data has been encoded
-      if (bitToEncode === undefined)
-        return true;
+      if (bitToEncode === undefined) return true;
 
       subpixels[subpixel] = Utils.setBit(subpixels[subpixel], bitPosition, bitToEncode);
     }
@@ -141,6 +180,35 @@ export class EncoderService {
         return options.bitsBlue;
       case SubpxCh.ALPHA:
         return options.bitsAlpha;
+    }
+  }
+
+  protected getHeaderFromBitsArray(headerBits: BitsArray): Header {
+    headerBits.index = 0;
+
+    let valueBits: number[][] = [];
+    for (let ch: SubpxCh = SubpxCh.RED; ch <= SubpxCh.ALPHA; ch++) {
+      valueBits[ch] = [];
+      for (let bit: number = 1; bit <= this.BITS_PER_CHANNEL_SIZE; bit++) {
+        valueBits[ch].push(headerBits.getNextBit());
+      }
+    }
+
+    let dataLengthBits: number[] = [];
+    let dataLengthBit: number = headerBits.getNextBit();
+    while (dataLengthBit !== undefined) {
+      dataLengthBits.push(dataLengthBit);
+      dataLengthBit = headerBits.getNextBit();
+    }
+
+    return {
+      options: {
+        bitsRed: Utils.bitsToNumber(valueBits[SubpxCh.RED]),
+        bitsGreen: Utils.bitsToNumber(valueBits[SubpxCh.GREEN]),
+        bitsBlue: Utils.bitsToNumber(valueBits[SubpxCh.BLUE]),
+        bitsAlpha: Utils.bitsToNumber(valueBits[SubpxCh.ALPHA]),
+      },
+      dataLength: Utils.bitsToNumber(dataLengthBits)
     }
   }
 
@@ -165,6 +233,12 @@ export class EncoderService {
     return BitsArray.arrayToBitsArray(data);
   }
 
+  protected getHeaderSize(source: ImageData, options: EncoderOptions): number {
+    const optionsSize: number = this.BITS_PER_CHANNEL_SIZE * 4;
+    const dataLengthSize: number = this.getDataLengthSize(source, options);
+    return optionsSize + dataLengthSize;
+  }
+
   protected getDataLengthSize(source: ImageData, options: EncoderOptions): number {
     return Utils.bitSize(this.getMaxRawCapacity(source, options));
   }
@@ -172,6 +246,11 @@ export class EncoderService {
   protected stringToUint8Array(input: string): Uint8Array {
     const textEncoder: TextEncoder = new TextEncoder();
     return textEncoder.encode(input);
+  }
+
+  public static uint8ArrayToString(data: Uint8Array): string {
+    const textDecoder: TextDecoder = new TextDecoder();
+    return textDecoder.decode(data);
   }
 
   protected fileToUint8Array(input: File): Uint8Array {

@@ -18,14 +18,18 @@ export class Utils {
     return data;
   }
 
+  public static bitsToNumber(bits: number[]): number {
+    return parseInt(bits.join(''), 2)
+  }
+
   public static bitSize(number: number): number {
     return number.toString(2).length;
   }
 
   public static setBit(input: number, bitPosition: number, bitValue: number): number {
     const bitValueNormalized: 1 | 0 = bitValue ? 1 : 0;
-    const clearMask: number = ~(1 << bitPosition);
-    return (input & clearMask) | (bitValueNormalized << bitPosition);
+    const clearMask: number = ~(1 << (bitPosition - 1));
+    return (input & clearMask) | (bitValueNormalized << (bitPosition - 1));
   }
 
   public static readBit(input: number, bitPosition: number): number {

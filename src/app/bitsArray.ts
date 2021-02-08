@@ -5,24 +5,35 @@ export class BitsArray {
   index: number;
   length: number;
 
-  constructor() {
+  constructor(length: number = 0) {
     this.data = [];
     this.index = 0;
-    this.length = 0;
+    this.length = length;
   }
 
   public getNextBit(): number {
+    const bit: number = this.data[this.index];
     this.index++;
-    if (this.index >= this.length) {
-      this.index--;
-      return undefined;
-    }
-    return this.data[this.index];
+    return bit;
+  }
+
+  public unshift(bit: number): void {
+    this.data.unshift(bit);
+    this.index++;
   }
 
   public push(bit: number): void {
     this.data.push(bit);
-    this.length = this.data.length;
+    this.index++;
+  }
+
+  public toUint8Array(): Uint8Array {
+    const lengthInBytes: number = this.length / 8;
+    const uint8Array: Uint8Array = new Uint8Array(lengthInBytes);
+    for (let byte: number = 0; byte < lengthInBytes; byte++) {
+      uint8Array[byte] = Utils.bitsToNumber(this.data.splice(0, 8));
+    }
+    return uint8Array;
   }
 
   public static arrayToBitsArray(data: number[]): BitsArray {

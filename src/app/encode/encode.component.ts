@@ -14,6 +14,10 @@ export class EncodeComponent {
   model: EncodeModel;
   DEFAULT_TOAST_DURATION: number = 2000;
 
+  // DEBUG
+  sourceImage: ImageData
+  encodedImage: ImageData
+
   // Accordion navigation
   setStep(index: number) {
     this.model.step = index;
@@ -87,6 +91,10 @@ export class EncodeComponent {
     // Generate URL for UI display
     URL.revokeObjectURL(this.model.encodedImageURL);
     this.model.encodedImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(encodedBlob)) as string;
+
+    // DEBUG; keep encodedImage to debug decoder quickly
+    this.sourceImage = this.model.sourceImageData;
+    this.encodedImage = encodedImage;
   }
 
   async load(files: FileList) {
@@ -115,5 +123,9 @@ export class EncodeComponent {
     this.model.sourceImageData = offscreenCanvasContext.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
 
     this.calculateCapacityPreview();
+  }
+
+  async debug() {
+    this.showToast(EncoderService.uint8ArrayToString(this.encoderService.decode(this.encodedImage)));
   }
 }
