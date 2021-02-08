@@ -35,6 +35,12 @@ export class EncoderService {
     bitsBlue: 1,
     bitsAlpha: 0
   };
+  MAX_CAP_OPTIONS: EncoderOptions = {
+    bitsRed: 8,
+    bitsGreen: 8,
+    bitsBlue: 8,
+    bitsAlpha: 8
+  };
 
   constructor() { }
 
@@ -43,7 +49,7 @@ export class EncoderService {
    * @param source
    * @param options
    */
-  public getMaxRawCapacity(source: ImageData, options: EncoderOptions): number {
+  public getMaxRawCapacity(source: ImageData, options: EncoderOptions = this.MAX_CAP_OPTIONS): number {
     const bitsPixel: number = options.bitsRed + options.bitsGreen + options.bitsBlue + options.bitsAlpha;
     return (source.width * source.height * bitsPixel);
   }
@@ -103,7 +109,7 @@ export class EncoderService {
     // Read header
     let subpixel: number;
     let readComplete: boolean = false;
-    const headerBits: BitsArray = new BitsArray(this.getHeaderSize(source, this.HEADER_OPTIONS));
+    const headerBits: BitsArray = new BitsArray(this.getHeaderSize(source));
     for (subpixel = 0; subpixel < subpixels.length; subpixel++) {
       if (readComplete) break;
       readComplete = this.readValue(subpixels[subpixel], this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
@@ -228,19 +234,19 @@ export class EncoderService {
     }
 
     // dataLength
-    data.push(...Utils.numberToBits(header.dataLength, this.getDataLengthSize(source, header.options)));
+    data.push(...Utils.numberToBits(header.dataLength, this.getDataLengthSize(source)));
 
     return BitsArray.arrayToBitsArray(data);
   }
 
-  protected getHeaderSize(source: ImageData, options: EncoderOptions): number {
+  protected getHeaderSize(source: ImageData): number {
     const optionsSize: number = this.BITS_PER_CHANNEL_SIZE * 4;
-    const dataLengthSize: number = this.getDataLengthSize(source, options);
+    const dataLengthSize: number = this.getDataLengthSize(source);
     return optionsSize + dataLengthSize;
   }
 
-  protected getDataLengthSize(source: ImageData, options: EncoderOptions): number {
-    return Utils.bitSize(this.getMaxRawCapacity(source, options));
+  protected getDataLengthSize(source: ImageData): number {
+    return Utils.bitSize(this.getMaxRawCapacity(source));
   }
 
   protected stringToUint8Array(input: string): Uint8Array {
