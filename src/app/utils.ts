@@ -1,5 +1,3 @@
-import { ɵɵpipeBind1 } from "@angular/core";
-
 export class Utils {
   public static numberToBits(number: number, numberOfBits: number): number[] {
     let data: number[] = [];
@@ -47,5 +45,10 @@ export class Utils {
       input = input / 1000;
     }
     return `${input.toFixed(1)} ${units[i]}`;
+  }
+
+  public static isNumberInRange(number: number, min: number, max: number): boolean {
+    if (number === undefined) return false;
+    return number >= min && number <= max;
   }
 }

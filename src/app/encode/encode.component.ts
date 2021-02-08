@@ -126,6 +126,10 @@ export class EncodeComponent {
   }
 
   async debug() {
-    this.showToast(EncoderService.uint8ArrayToString(this.encoderService.decode(this.encodedImage)));
+    try {
+      this.showToast(EncoderService.uint8ArrayToString(this.encoderService.decode(this.encodedImage)));
+    } catch (error) {
+      this.showToast(error);
+    }
   }
 }

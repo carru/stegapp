@@ -11,8 +11,8 @@ export interface EncoderOptions {
 }
 
 interface Header {
-  options: EncoderOptions,
-  dataLength: number
+  options: EncoderOptions;
+  dataLength: number;
 }
 
 enum SubpxCh {
@@ -29,6 +29,7 @@ export class EncoderService {
   BITS_PER_CHANNEL_SIZE: number = 4;
   DATA_DOESNT_FIT_ERROR: string = "Data doesn't fit";
   GENERIC_DECODE_ERROR: string = "Error extracting information";
+  NO_VALID_DATA_ERROR: string = "No valid data found";
   HEADER_OPTIONS: EncoderOptions = {
     bitsRed: 1,
     bitsGreen: 1,
@@ -116,6 +117,10 @@ export class EncoderService {
     }
     const header: Header = this.getHeaderFromBitsArray(headerBits);
 
+    // Sanity check the header in case we're decoding an image that does not have information embedded
+    if (!EncoderService.isValidHeader(header)) throw new Error(this.NO_VALID_DATA_ERROR);
+
+
     // Read data; resume on next subpixel after header
     readComplete = false;
     const dataBits: BitsArray = new BitsArray(header.dataLength);
@@ -127,6 +132,18 @@ export class EncoderService {
     if (!readComplete) throw new Error(this.GENERIC_DECODE_ERROR);
 
     return dataBits.toUint8Array();
+  }
+
+  public static isValidHeader(header: Header): boolean {
+    if (!header) return false;
+    if (!header.options) return false;
+    if (!Utils.isNumberInRange(header.options.bitsRed, 0, 8)) return false;
+    if (!Utils.isNumberInRange(header.options.bitsGreen, 0, 8)) return false;
+    if (!Utils.isNumberInRange(header.options.bitsBlue, 0, 8)) return false;
+    if (!Utils.isNumberInRange(header.options.bitsAlpha, 0, 8)) return false;
+    if (header.dataLength < 0) return false;
+
+    return true;
   }
 
   /**
