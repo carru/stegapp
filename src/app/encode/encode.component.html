@@ -26,7 +26,7 @@
         </mat-expansion-panel-header>
         <div id="divExpansionPanel">
           <mat-checkbox [(ngModel)]="model.livePreview" (change)="rgbaSliderChange()">Live preview</mat-checkbox>
-          <mat-checkbox [(ngModel)]="model.sideBySideView" (change)="rgbaSliderChange()">Side by side view</mat-checkbox>
+          <mat-checkbox [(ngModel)]="model.sideBySideView">Side by side view</mat-checkbox>
           <mat-checkbox [(ngModel)]="model.rgbLocked" (change)="rgbaSliderChange()">Lock RGB</mat-checkbox>
           <br>
           <label id="labelBitsRed">Bits per Red subpixel</label>
