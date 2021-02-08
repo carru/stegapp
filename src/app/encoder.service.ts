@@ -26,7 +26,6 @@ enum SubpxCh {
   providedIn: 'root'
 })
 export class EncoderService {
-
   BITS_PER_CHANNEL_SIZE: number = 4;
   HEADER_OPTIONS: EncoderOptions = {
     bitsRed: 1,
@@ -71,7 +70,8 @@ export class EncoderService {
       throw new Error("Data doesn't fit");
     }
     if ((headerBits.length + dataBits.length) > this.getMaxRawCapacity(source, options)) {
-      // This doesn't account for the header using different options; i.e. it can take up more space than this considers!
+      /* This doesn't account for the header using different options; i.e. it can take up more space than this considers!
+       * It will still throw an error after trying to encode and running out of subpixels */
       throw new Error("Data doesn't fit");
     }
 
@@ -89,6 +89,8 @@ export class EncoderService {
       if (encodingComplete) break;
       encodingComplete = this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
     }
+
+    if (!encodingComplete) throw new Error("Data doesn't fit");
 
     return new ImageData(subpixels, source.width, source.height);
   }
@@ -153,10 +155,9 @@ export class EncoderService {
     let data: number[] = [];
 
     // options
-    data.push(...Utils.numberToBits(header.options.bitsRed, this.BITS_PER_CHANNEL_SIZE));
-    data.push(...Utils.numberToBits(header.options.bitsGreen, this.BITS_PER_CHANNEL_SIZE));
-    data.push(...Utils.numberToBits(header.options.bitsBlue, this.BITS_PER_CHANNEL_SIZE));
-    data.push(...Utils.numberToBits(header.options.bitsAlpha, this.BITS_PER_CHANNEL_SIZE));
+    for (let ch: SubpxCh = SubpxCh.RED; ch <= SubpxCh.ALPHA; ch++) {
+      data.push(...Utils.numberToBits(this.getBitsOfChannel(header.options, ch), this.BITS_PER_CHANNEL_SIZE));
+    }
 
     // dataLength
     data.push(...Utils.numberToBits(header.dataLength, this.getDataLengthSize(source, header.options)));
