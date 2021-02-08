@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BitsArray } from './bitsArray';
+import { RandomBitsArray } from './randomBitsArray';
 import { Utils } from './utils';
 
 export interface EncoderOptions {
@@ -12,6 +13,13 @@ export interface EncoderOptions {
 interface Header {
   options: EncoderOptions,
   dataLength: number
+}
+
+enum SubpxCh {
+  RED = 0,
+  GREEN,
+  BLUE,
+  ALPHA
 }
 
 @Injectable({
@@ -49,7 +57,7 @@ export class EncoderService {
 
   public encode(source: ImageData, options: EncoderOptions, data: Uint8Array): ImageData {
     // New pixel array to encode data
-    const encodedPixels: Uint8ClampedArray = Uint8ClampedArray.from(source.data);
+    const subpixels: Uint8ClampedArray = Uint8ClampedArray.from(source.data);
 
     // Convert data to array of individual bits
     const dataBits: BitsArray = BitsArray.uint8ArrayToBitsArray(data);
@@ -68,91 +76,21 @@ export class EncoderService {
     }
 
     // Encode header
-    let subPixel: number;
+    let subpixel: number;
     let encodingComplete: boolean = false;
-    for (subPixel = 0; subPixel < encodedPixels.length; subPixel += 4) {
+    for (subpixel = 0; subpixel < subpixels.length; subpixel++) {
       if (encodingComplete) break;
-
-      let bitPosition: number;
-      let bitToEncode: number;
-
-      for (bitPosition = 1; bitPosition <= this.HEADER_OPTIONS.bitsRed; bitPosition++) {
-        bitToEncode = headerBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel] = Utils.setBit(encodedPixels[subPixel], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= this.HEADER_OPTIONS.bitsGreen; bitPosition++) {
-        bitToEncode = headerBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel + 1] = Utils.setBit(encodedPixels[subPixel + 1], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= this.HEADER_OPTIONS.bitsBlue; bitPosition++) {
-        bitToEncode = headerBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel + 2] = Utils.setBit(encodedPixels[subPixel + 2], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= this.HEADER_OPTIONS.bitsAlpha; bitPosition++) {
-        bitToEncode = headerBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel + 3] = Utils.setBit(encodedPixels[subPixel + 3], bitPosition, bitToEncode);
-      }
+      encodingComplete = this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
     }
 
-    // Encode data; resume on next pixel after header
+    // Encode data; resume on next subpixel after header
     encodingComplete = false;
-    for (; subPixel < encodedPixels.length; subPixel += 4) {
+    for (; subpixel < subpixels.length; subpixel++) {
       if (encodingComplete) break;
-
-      let bitPosition: number;
-      let bitToEncode: number;
-
-      for (bitPosition = 1; bitPosition <= options.bitsRed; bitPosition++) {
-        bitToEncode = dataBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel] = Utils.setBit(encodedPixels[subPixel], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= options.bitsGreen; bitPosition++) {
-        bitToEncode = dataBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel + 1] = Utils.setBit(encodedPixels[subPixel + 1], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= options.bitsBlue; bitPosition++) {
-        bitToEncode = dataBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel + 2] = Utils.setBit(encodedPixels[subPixel + 2], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= options.bitsAlpha; bitPosition++) {
-        bitToEncode = dataBits.getNextBit();
-        if (bitToEncode === undefined) {
-          encodingComplete = true;
-          break;
-        }
-        encodedPixels[subPixel + 3] = Utils.setBit(encodedPixels[subPixel + 3], bitPosition, bitToEncode);
-      }
+      encodingComplete = this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
     }
 
-    return new ImageData(encodedPixels, source.width, source.height);
+    return new ImageData(subpixels, source.width, source.height);
   }
 
   /**
@@ -162,32 +100,46 @@ export class EncoderService {
    */
   public encodeRandom(source: ImageData, options: EncoderOptions): ImageData {
     // New pixel array to encode data
-    const encodedPixels: Uint8ClampedArray = Uint8ClampedArray.from(source.data);
+    const subpixels: Uint8ClampedArray = Uint8ClampedArray.from(source.data);
+
+    // Use random data source
+    const dataBits: RandomBitsArray = new RandomBitsArray();
 
     // Iterate pixels
-    for (let subPixel: number = 0; subPixel < encodedPixels.length; subPixel += 4) {
-      let bitPosition: number;
-      let bitToEncode: number;
-
-      for (bitPosition = 1; bitPosition <= options.bitsRed; bitPosition++) {
-        bitToEncode = Math.random() < 0.5 ? 1 : 0;
-        encodedPixels[subPixel] = Utils.setBit(encodedPixels[subPixel], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= options.bitsGreen; bitPosition++) {
-        bitToEncode = Math.random() < 0.5 ? 1 : 0;
-        encodedPixels[subPixel + 1] = Utils.setBit(encodedPixels[subPixel + 1], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= options.bitsBlue; bitPosition++) {
-        bitToEncode = Math.random() < 0.5 ? 1 : 0;
-        encodedPixels[subPixel + 2] = Utils.setBit(encodedPixels[subPixel + 2], bitPosition, bitToEncode);
-      }
-      for (bitPosition = 1; bitPosition <= options.bitsAlpha; bitPosition++) {
-        bitToEncode = Math.random() < 0.5 ? 1 : 0;
-        encodedPixels[subPixel + 3] = Utils.setBit(encodedPixels[subPixel + 3], bitPosition, bitToEncode);
-      }
+    for (let subpixel: number = 0; subpixel < subpixels.length; subpixel++) {
+      // RandomBitsArray is infinite so no need to check if encoding is done
+      this.writeSubPixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
     }
 
-    return new ImageData(encodedPixels, source.width, source.height);
+    return new ImageData(subpixels, source.width, source.height);
+  }
+
+  protected writeSubPixel(subpixels: Uint8ClampedArray, subpixel: number, numOfBitsToUse: number, dataBits: BitsArray): boolean {
+    for (let bitPosition: number = 1; bitPosition <= numOfBitsToUse; bitPosition++) {
+      const bitToEncode: number = dataBits.getNextBit();
+
+      // Leave if all data has been encoded
+      if (bitToEncode === undefined)
+        return true;
+
+      subpixels[subpixel] = Utils.setBit(subpixels[subpixel], bitPosition, bitToEncode);
+    }
+
+    // Still more data left to encode
+    return false;
+  }
+
+  protected getBitsOfChannel(options: EncoderOptions, channel: SubpxCh): number {
+    switch (channel) {
+      case SubpxCh.RED:
+        return options.bitsRed;
+      case SubpxCh.GREEN:
+        return options.bitsGreen;
+      case SubpxCh.BLUE:
+        return options.bitsBlue;
+      case SubpxCh.ALPHA:
+        return options.bitsAlpha;
+    }
   }
 
   protected getHeader(options: EncoderOptions, data: BitsArray): Header {

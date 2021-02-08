@@ -5,7 +5,11 @@ export class BitsArray {
   index: number;
   length: number;
 
-  constructor() { }
+  constructor() {
+    this.data = [];
+    this.index = 0;
+    this.length = 0;
+  }
 
   public getNextBit(): number {
     this.index++;
@@ -14,6 +18,11 @@ export class BitsArray {
       return undefined;
     }
     return this.data[this.index];
+  }
+
+  public push(bit: number): void {
+    this.data.push(bit);
+    this.length = this.data.length;
   }
 
   public static arrayToBitsArray(data: number[]): BitsArray {

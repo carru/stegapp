@@ -1,3 +1,5 @@
+import { ɵɵpipeBind1 } from "@angular/core";
+
 export class Utils {
   public static numberToBits(number: number, numberOfBits: number): number[] {
     let data: number[] = [];
@@ -24,6 +26,11 @@ export class Utils {
     const bitValueNormalized: 1 | 0 = bitValue ? 1 : 0;
     const clearMask: number = ~(1 << bitPosition);
     return (input & clearMask) | (bitValueNormalized << bitPosition);
+  }
+
+  public static readBit(input: number, bitPosition: number): number {
+    input = input >> (bitPosition - 1);
+    return input & 0b1;
   }
 
   public static toHumanReadable(input: number): string {
