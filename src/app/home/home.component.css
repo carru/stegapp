@@ -1,0 +1,17 @@
+.flex-contents-col {
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  overflow: auto;
+  height: 100%;
+}
+
+.centered-text {
+  text-align:center;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
