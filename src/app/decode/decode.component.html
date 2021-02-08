@@ -1,1 +1,7 @@
-<p>decode works!</p>
+<div id="divMain">
+  <input #file type="file" accept="image/png" (change)="load(file.files)" />
+  <button mat-flat-button color="primary" (click)="decode()">Decode</button>
+  <button mat-flat-button color="primary" [disabled]="true">Download as file</button>
+  <textarea matInput matTextareaAutosize [(ngModel)]="dataText"></textarea>
+  <button mat-flat-button color="primary" [cdkCopyToClipboard]="dataText">Copy text to clipboard</button>
+</div>
