@@ -1,7 +1,67 @@
-<div id="divMain">
-  <input #file type="file" accept="image/png" (change)="load(file.files)" />
-  <button mat-flat-button color="primary" (click)="decode()">Decode</button>
-  <button mat-flat-button color="primary" [disabled]="true">Download as file</button>
-  <textarea matInput matTextareaAutosize [(ngModel)]="dataText"></textarea>
-  <button mat-flat-button color="primary" [cdkCopyToClipboard]="dataText">Copy text to clipboard</button>
+<div class="flex-contents-row full-height">
+  <div id="divColumn1" class="flex-contents-column">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Source image</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <br>
+        <img mat-card-image [src]="model.sourceImageURL" *ngIf="model.sourceImageURL">
+        <div class="flex-contents-column">
+          <input class="padding" #file type="file" accept="image/png" (change)="load(file.files)" />
+          <br>
+          <label id="labelBitsRed">Bits per Red subpixel</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsRed"
+            [(ngModel)]="model.options.bitsRed" [disabled]="true"></mat-slider>
+          <label id="labelBitsGreen">Bits per Green subpixel</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsGreen"
+            [(ngModel)]="model.options.bitsGreen" [disabled]="true"></mat-slider>
+          <label id="labelBitsBlue">Bits per Blue subpixel</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsBlue"
+            [(ngModel)]="model.options.bitsBlue" [disabled]="true"></mat-slider>
+          <label id="labelBitsAlpha">Bits per Alpha subpixel (transparency)</label>
+          <mat-slider thumbLabel tickInterval="1" min="0" max="8" step="1" value="1" aria-labelledby="labelBitsAlpha"
+            [(ngModel)]="model.options.bitsAlpha" [disabled]="true"></mat-slider>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-flat-button color="primary" (click)="decode()">Decode</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <div id="divColumn2" class="flex-contents-column">
+    <div>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>File</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="flex-contents-column">
+            <p>Use this to treat to data as generic file.<br>Download and rename to add an extension.</p>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" [disabled]="true">Download as file</button>
+      </mat-card-actions>
+      </mat-card>
+    </div>
+    <br>
+    <div>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Text</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="flex-contents-column">
+            <p>Show data as text:</p>
+            <textarea matInput matTextareaAutosize [(ngModel)]="model.dataText"></textarea>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-flat-button color="primary" [cdkCopyToClipboard]="model.dataText">Copy text to clipboard</button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
 </div>

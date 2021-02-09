@@ -10,7 +10,12 @@ export interface EncoderOptions {
   bitsAlpha: number;
 }
 
-interface Header {
+export interface DecodingResults {
+  header: Header;
+  data: Uint8Array;
+}
+
+export interface Header {
   options: EncoderOptions;
   dataLength: number;
 }
@@ -26,17 +31,17 @@ enum SubpxCh {
   providedIn: 'root'
 })
 export class EncoderService {
-  BITS_PER_CHANNEL_SIZE: number = 4;
-  DATA_DOESNT_FIT_ERROR: string = "Data doesn't fit";
-  GENERIC_DECODE_ERROR: string = "Error extracting information";
-  NO_VALID_DATA_ERROR: string = "No valid data found";
-  HEADER_OPTIONS: EncoderOptions = {
+  static BITS_PER_CHANNEL_SIZE: number = 4;
+  static DATA_DOESNT_FIT_ERROR: string = "Data doesn't fit";
+  static GENERIC_DECODE_ERROR: string = "Error extracting information";
+  static NO_VALID_DATA_ERROR: string = "No valid data found";
+  static HEADER_OPTIONS: EncoderOptions = {
     bitsRed: 1,
     bitsGreen: 1,
     bitsBlue: 1,
     bitsAlpha: 0
   };
-  MAX_CAP_OPTIONS: EncoderOptions = {
+  static MAX_CAP_OPTIONS: EncoderOptions = {
     bitsRed: 8,
     bitsGreen: 8,
     bitsBlue: 8,
@@ -50,7 +55,7 @@ export class EncoderService {
    * @param source
    * @param options
    */
-  public getMaxRawCapacity(source: ImageData, options: EncoderOptions = this.MAX_CAP_OPTIONS): number {
+  public getMaxRawCapacity(source: ImageData, options: EncoderOptions = EncoderService.MAX_CAP_OPTIONS): number {
     const bitsPixel: number = options.bitsRed + options.bitsGreen + options.bitsBlue + options.bitsAlpha;
     return (source.width * source.height * bitsPixel);
   }
@@ -76,12 +81,12 @@ export class EncoderService {
       headerBits = this.getHeaderBitsArray(source, this.getHeader(options, dataBits));
     } catch (error) {
       console.warn(error);
-      throw new Error(this.DATA_DOESNT_FIT_ERROR);
+      throw new Error(EncoderService.DATA_DOESNT_FIT_ERROR);
     }
     if ((headerBits.length + dataBits.length) > this.getMaxRawCapacity(source, options)) {
       /* This doesn't account for the header using different options; i.e. it can take up more space than this considers!
        * It will still throw an error after trying to encode and running out of subpixels */
-      throw new Error(this.DATA_DOESNT_FIT_ERROR);
+      throw new Error(EncoderService.DATA_DOESNT_FIT_ERROR);
     }
 
     // Encode header
@@ -89,7 +94,7 @@ export class EncoderService {
     let encodingComplete: boolean = false;
     for (subpixel = 0; subpixel < subpixels.length; subpixel++) {
       if (encodingComplete) break;
-      encodingComplete = this.writeSubpixel(subpixels, subpixel, this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
+      encodingComplete = this.writeSubpixel(subpixels, subpixel, this.getBitsOfChannel(EncoderService.HEADER_OPTIONS, subpixel % 4), headerBits);
     }
 
     // Encode data; resume on next subpixel after header
@@ -99,12 +104,12 @@ export class EncoderService {
       encodingComplete = this.writeSubpixel(subpixels, subpixel, this.getBitsOfChannel(options, subpixel % 4), dataBits);
     }
 
-    if (!encodingComplete) throw new Error(this.DATA_DOESNT_FIT_ERROR);
+    if (!encodingComplete) throw new Error(EncoderService.DATA_DOESNT_FIT_ERROR);
 
     return new ImageData(subpixels, source.width, source.height);
   }
 
-  public decode(source: ImageData): Uint8Array {
+  public decode(source: ImageData): DecodingResults {
     const subpixels: Uint8ClampedArray = Uint8ClampedArray.from(source.data);
 
     // Read header
@@ -113,12 +118,12 @@ export class EncoderService {
     const headerBits: BitsArray = new BitsArray(this.getHeaderSize(source));
     for (subpixel = 0; subpixel < subpixels.length; subpixel++) {
       if (readComplete) break;
-      readComplete = this.readValue(subpixels[subpixel], this.getBitsOfChannel(this.HEADER_OPTIONS, subpixel % 4), headerBits);
+      readComplete = this.readValue(subpixels[subpixel], this.getBitsOfChannel(EncoderService.HEADER_OPTIONS, subpixel % 4), headerBits);
     }
     const header: Header = this.getHeaderFromBitsArray(headerBits);
 
     // Sanity check the header in case we're decoding an image that does not have information embedded
-    if (!EncoderService.isValidHeader(header)) throw new Error(this.NO_VALID_DATA_ERROR);
+    if (!EncoderService.isValidHeader(header)) throw new Error(EncoderService.NO_VALID_DATA_ERROR);
 
 
     // Read data; resume on next subpixel after header
@@ -129,9 +134,9 @@ export class EncoderService {
       readComplete = this.readValue(subpixels[subpixel], this.getBitsOfChannel(header.options, subpixel % 4), dataBits);
     }
 
-    if (!readComplete) throw new Error(this.GENERIC_DECODE_ERROR);
+    if (!readComplete) throw new Error(EncoderService.GENERIC_DECODE_ERROR);
 
-    return dataBits.toUint8Array();
+    return { header, data: dataBits.toUint8Array() };
   }
 
   public static isValidHeader(header: Header): boolean {
@@ -212,7 +217,7 @@ export class EncoderService {
     let valueBits: number[][] = [];
     for (let ch: SubpxCh = SubpxCh.RED; ch <= SubpxCh.ALPHA; ch++) {
       valueBits[ch] = [];
-      for (let bit: number = 1; bit <= this.BITS_PER_CHANNEL_SIZE; bit++) {
+      for (let bit: number = 1; bit <= EncoderService.BITS_PER_CHANNEL_SIZE; bit++) {
         valueBits[ch].push(headerBits.getNextBit());
       }
     }
@@ -247,7 +252,7 @@ export class EncoderService {
 
     // options
     for (let ch: SubpxCh = SubpxCh.RED; ch <= SubpxCh.ALPHA; ch++) {
-      data.push(...Utils.numberToBits(this.getBitsOfChannel(header.options, ch), this.BITS_PER_CHANNEL_SIZE));
+      data.push(...Utils.numberToBits(this.getBitsOfChannel(header.options, ch), EncoderService.BITS_PER_CHANNEL_SIZE));
     }
 
     // dataLength
@@ -257,7 +262,7 @@ export class EncoderService {
   }
 
   protected getHeaderSize(source: ImageData): number {
-    const optionsSize: number = this.BITS_PER_CHANNEL_SIZE * 4;
+    const optionsSize: number = EncoderService.BITS_PER_CHANNEL_SIZE * 4;
     const dataLengthSize: number = this.getDataLengthSize(source);
     return optionsSize + dataLengthSize;
   }

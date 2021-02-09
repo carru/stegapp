@@ -1,6 +1,31 @@
-#divMain {
+.full-height {
+  height: 100%;
+}
+
+.flex-contents-row {
+  display: flex;
+  flex-direction: row;
+  flex: auto;
+  overflow: auto;
+}
+
+.flex-contents-column {
   display: flex;
   flex-direction: column;
   flex: auto;
   overflow: auto;
+}
+
+#divColumn1 {
+  flex: 1;
+  padding: 5px 2.5px 5px 5px;
+}
+
+#divColumn2 {
+  flex: 2.5;
+  padding: 5px 5px 5px 2.5px;
+}
+
+.padding {
+  padding: 15px;
 }

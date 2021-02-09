@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
-import { EncoderService } from '../encoder.service';
+import { DomSanitizer } from '@angular/platform-browser';
+import { DecodingResults, EncoderService, Header } from '../encoder.service';
+import { DecodeModel } from './decodeModel';
 
 @Component({
   selector: 'app-decode',
@@ -7,10 +9,11 @@ import { EncoderService } from '../encoder.service';
   styleUrls: ['./decode.component.css']
 })
 export class DecodeComponent {
-  sourceImageData: ImageData;
-  dataText: string;
+  model: DecodeModel;
 
-  constructor(private encoderService: EncoderService) { }
+  constructor(private domSanitizer: DomSanitizer, private encoderService: EncoderService) {
+    this.model = new DecodeModel();
+  }
 
   async load(files: FileList) {
     if (files.length === 0) return;
@@ -20,19 +23,24 @@ export class DecodeComponent {
 
     const imageFile: File = files[0];
 
+    // Generate URL for UI display
+    URL.revokeObjectURL(this.model.sourceImageURL);
+    this.model.sourceImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(imageFile)) as string;
+
     // Get image data
     const imageBitmap: ImageBitmap = await createImageBitmap(imageFile);
     const offscreenCanvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
     const offscreenCanvasContext = offscreenCanvas.getContext('2d');
     offscreenCanvasContext.drawImage(imageBitmap, 0, 0);
-    this.sourceImageData = offscreenCanvasContext.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+    this.model.sourceImageData = offscreenCanvasContext.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
 
     this.decode();
   }
 
   decode() {
-    const data: Uint8Array = this.encoderService.decode(this.sourceImageData);
-    this.dataText = EncoderService.uint8ArrayToString(data);
+    const decodingResults: DecodingResults = this.encoderService.decode(this.model.sourceImageData);
+    this.model.options = decodingResults.header.options;
+    this.model.dataText = EncoderService.uint8ArrayToString(decodingResults.data);
   }
 
 }

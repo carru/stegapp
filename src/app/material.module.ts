@@ -11,6 +11,7 @@ import {MatIconModule} from '@angular/material/icon';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {ClipboardModule} from '@angular/cdk/clipboard';
+import {MatCardModule} from '@angular/material/card';
 
 @NgModule({
   exports: [
@@ -24,7 +25,8 @@ import {ClipboardModule} from '@angular/cdk/clipboard';
     MatIconModule,
     MatCheckboxModule,
     MatSnackBarModule,
-    ClipboardModule
+    ClipboardModule,
+    MatCardModule
   ]
 })
 export class MaterialModule {}
