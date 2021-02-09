@@ -1,4 +1,4 @@
-<div id="divMain">
+<div class="flex-contents-row full-height">
 
   <div id="divColumn1">
     <mat-accordion>
@@ -93,7 +93,7 @@
       </mat-tab>
     </mat-tab-group>
 
-    <div id="divSideBySide" *ngIf="model.sideBySideView">
+    <div class="flex-contents-column full-height" *ngIf="model.sideBySideView">
       <label class="centered-text">Source</label>
       <div class="imgbox">
         <img class="center-fit" [src]="model.sourceImageURL" *ngIf="model.sourceImageURL">
