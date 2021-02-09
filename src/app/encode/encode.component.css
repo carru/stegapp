@@ -26,14 +26,6 @@
   padding: 5px 5px 5px 2.5px;
 }
 
-#divExpansionPanel {
-  display: flex;
-  flex-direction: column;
-  flex: auto;
-  overflow: auto;
-  padding: 15px;
-}
-
 .imgbox {
   display: grid;
   height: 100%;
@@ -45,12 +37,10 @@
   margin: auto;
 }
 
-.radioGroup {
-  display: flex;
-  flex-direction: column;
-  margin: 15px 0;
-}
-
 .centered-text {
   text-align:center;
+}
+
+.padding {
+  padding: 15px;
 }

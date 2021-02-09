@@ -1,6 +1,6 @@
 <div class="flex-contents-row full-height">
 
-  <div id="divColumn1">
+  <div id="divColumn1" class="flex-contents-column">
     <mat-accordion>
 
       <mat-expansion-panel [expanded]="model.step === 0" (opened)="setStep(0)">
@@ -8,7 +8,7 @@
           <mat-panel-title>Source image</mat-panel-title>
           <mat-panel-description>{{model.imageName}}</mat-panel-description>
         </mat-expansion-panel-header>
-        <div class="divExpansionPanel">
+        <div class="flex-contents-column">
           <input #file type="file" accept="image/*" (change)="load(file.files)" />
           <p>Type: {{model.imageType}}</p>
           <p>Width: {{model.imageWidth}} px</p>
@@ -24,7 +24,7 @@
           <mat-panel-title>Settings</mat-panel-title>
           <mat-panel-description>Bits per RGBA channel: {{model.options.bitsRed}}{{model.options.bitsGreen}}{{model.options.bitsBlue}}{{model.options.bitsAlpha}}</mat-panel-description>
         </mat-expansion-panel-header>
-        <div id="divExpansionPanel">
+        <div class="flex-contents-column">
           <mat-checkbox [(ngModel)]="model.livePreview" (change)="rgbaSliderChange()">Live preview</mat-checkbox>
           <mat-checkbox [(ngModel)]="model.sideBySideView">Side by side view</mat-checkbox>
           <mat-checkbox [(ngModel)]="model.rgbLocked" (change)="rgbaSliderChange()">Lock RGB</mat-checkbox>
@@ -56,16 +56,16 @@
           <mat-panel-title>Input data</mat-panel-title>
           <mat-panel-description></mat-panel-description>
         </mat-expansion-panel-header>
-        <div class="divExpansionPanel">
-          <mat-radio-group class="radioGroup" [(ngModel)]="model.dataSource">
-            <mat-radio-button value="1" [disabled]="true">File</mat-radio-button>
+        <div class="flex-contents-column">
+          <mat-radio-group class="flex-contents-column" [(ngModel)]="model.dataSource">
+            <mat-radio-button class="padding" value="1" [disabled]="true">File</mat-radio-button>
             <input #file type="file" accept="*/*" [disabled]="model.dataSource!=='1'" />
             <p>Filename: </p>
             <p>Size: </p>
-            <mat-radio-button value="2">Text</mat-radio-button>
+            <mat-radio-button class="padding" value="2">Text</mat-radio-button>
             <textarea matInput matTextareaAutosize matAutosizeMinRows="4" matAutosizeMaxRows="20"
               [disabled]="model.dataSource!=='2'" [(ngModel)]="model.dataText"></textarea>
-            <mat-radio-button value="3">Random</mat-radio-button>
+            <mat-radio-button class="padding" value="3">Random</mat-radio-button>
             <p>Fill with random data</p>
           </mat-radio-group>
         </div>
@@ -75,7 +75,7 @@
       </mat-expansion-panel>
 
     </mat-accordion>
-
+    <div class="full-height"></div>
     <button mat-flat-button color="primary" (click)="encode()">Encode</button>
   </div>
 
