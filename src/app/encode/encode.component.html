@@ -59,7 +59,7 @@
         <div class="flex-contents-column">
           <mat-radio-group class="flex-contents-column" [(ngModel)]="model.dataSource">
             <mat-radio-button class="padding" value="1">File</mat-radio-button>
-            <input #file type="file" accept="*/*" (change)="loadDataFile(file.files)" [disabled]="model.dataSource!=='1'" />
+            <input #dataFile type="file" accept="*/*" (change)="loadDataFile(dataFile.files)" [disabled]="model.dataSource!=='1'" />
             <p>Filename: </p>
             <p>Size: </p>
             <mat-radio-button class="padding" value="2">Text</mat-radio-button>
