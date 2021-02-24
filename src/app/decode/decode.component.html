@@ -42,7 +42,7 @@
           </div>
         </mat-card-content>
         <mat-card-actions>
-          <a mat-flat-button color="primary" [href]="model.dataFileURL" target="_blank">Download as file</a>
+          <a mat-flat-button color="primary" [href]="model.dataFileURL" target="_blank" [disabled]="!model.dataFileURL">Download as file</a>
       </mat-card-actions>
       </mat-card>
     </div>
