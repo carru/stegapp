@@ -60,8 +60,8 @@ export class EncoderService {
     return (source.width * source.height * bitsPixel);
   }
 
-  public encodeFile(source: ImageData, options: EncoderOptions, data: File): ImageData {
-    return this.encode(source, options, this.fileToUint8Array(data));
+  public async encodeFile(source: ImageData, options: EncoderOptions, data: File): Promise<ImageData> {
+    return this.encode(source, options, await this.fileToUint8Array(data));
   }
 
   public encodeString(source: ImageData, options: EncoderOptions, data: string): ImageData {
@@ -281,8 +281,7 @@ export class EncoderService {
     return textDecoder.decode(data);
   }
 
-  protected fileToUint8Array(input: File): Uint8Array {
-    // TODO
-    return undefined;
+  protected async fileToUint8Array(input: File): Promise<Uint8Array> {
+    return new Uint8Array(await input.arrayBuffer());
   }
 }

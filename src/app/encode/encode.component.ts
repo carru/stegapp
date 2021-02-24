@@ -64,7 +64,11 @@ export class EncodeComponent {
     try {
       switch (this.model.dataSource) {
         case DataSources.File:
-          encodedImage = this.encoderService.encodeFile(this.model.sourceImageData, this.model.options, this.model.dataFile);
+          if (!this.model.dataFile) {
+            this.showToast('No data file selected');
+            return;
+          }
+          encodedImage = await this.encoderService.encodeFile(this.model.sourceImageData, this.model.options, this.model.dataFile);
           break;
         case DataSources.Text:
           encodedImage = this.encoderService.encodeString(this.model.sourceImageData, this.model.options, this.model.dataText);
@@ -87,6 +91,11 @@ export class EncodeComponent {
     // Generate URL for UI display
     URL.revokeObjectURL(this.model.encodedImageURL);
     this.model.encodedImageURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(encodedBlob)) as string;
+  }
+
+  loadDataFile(files: FileList) {
+    if (files.length === 0) return;
+    this.model.dataFile = files[0];
   }
 
   async load(files: FileList) {
