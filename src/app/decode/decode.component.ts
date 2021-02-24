@@ -41,6 +41,11 @@ export class DecodeComponent {
     const decodingResults: DecodingResults = this.encoderService.decode(this.model.sourceImageData);
     this.model.options = decodingResults.header.options;
     this.model.dataText = EncoderService.uint8ArrayToString(decodingResults.data);
+
+    // Generate URL for download
+    const blob: Blob = new Blob([decodingResults.data], { type: 'application/octet-stream' });
+    URL.revokeObjectURL(this.model.dataFileURL);
+    this.model.dataFileURL = this.domSanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(blob)) as string;
   }
 
 }

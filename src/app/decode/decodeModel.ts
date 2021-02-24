@@ -4,6 +4,7 @@ export class DecodeModel {
   sourceImageData: ImageData;
   sourceImageURL: string;
   dataText: string;
+  dataFileURL: string;
   options: EncoderOptions = {
     bitsRed: 0,
     bitsGreen: 0,

@@ -42,7 +42,7 @@
           </div>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-flat-button color="primary" [disabled]="true">Download as file</button>
+          <a mat-flat-button color="primary" [href]="model.dataFileURL" target="_blank">Download as file</a>
       </mat-card-actions>
       </mat-card>
     </div>
@@ -59,7 +59,7 @@
           </div>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-flat-button color="primary" [cdkCopyToClipboard]="model.dataText">Copy text to clipboard</button>
+          <button mat-flat-button color="primary" [cdkCopyToClipboard]="model.dataText">Copy to clipboard</button>
         </mat-card-actions>
       </mat-card>
     </div>
