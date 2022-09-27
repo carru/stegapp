@@ -28,3 +28,9 @@ A header contains the necessary parameters to decode and recover the information
 Header is always encoded with the same parameters so it can be decoded later: 1 bit/RGB, 0 bits/A  
 Bits/subpixel values are saved using 4 bits, this allows values 0-8. Using 8 bits/subpixel is unrealistic, since it completely replaces the original data, so it could be reduced to only 3 bits for 0-7 values. This would save 4 bits which translates to 2 pixels.  
 \[1\]: Data length varies based on image dimensions and encoding options. It's value is encoded using as many bits as necessary for the maximum length.
+
+## UI
+### Encoding
+![example](sample1.png)
+### Decoding
+![example](sample2.png)
